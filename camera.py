@@ -64,7 +64,7 @@ class CameraClassifier:
                                  thickness=2, bg_color=(0, 0, 0), 
                                  text_color=(255, 255, 255)):
         """
-        Vẽ text với background
+        Vẽ text với background      
         
         Args:
             img: Image frame
