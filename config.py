@@ -4,7 +4,7 @@ File cấu hình cho hệ thống phân loại rác thải
 """
 
 # Các loại rác cần phân loại
-CLASSES = ['cardboard', 'glass', 'metal', 'paper', 'plastic', 'trash']
+CLASSES = ['cardboard', 'glass', 'metal', 'paper', 'plastic', 'trash', 'organic']
 
 # Thông tin chi tiết về từng loại rác
 CLASS_INFO = {
@@ -55,7 +55,16 @@ CLASS_INFO = {
         'disposal': 'Rác thông thường - Bỏ vào thùng rác',
         'examples': ['Rác không tái chế', 'Rác bẩn', 'Rác hữu cơ'],
         'recycling_value': 'Không'
-    }
+    },
+    'organic': {
+    'name_vi': 'Rác hữu cơ',
+    'icon': '🍌',
+    'color': '\033[32m',  # Green
+    'disposal': 'Phân hủy – Bỏ vào thùng rác hữu cơ',
+    'examples': ['Vỏ trái cây', 'Rau củ', 'Thức ăn thừa'],
+    'recycling_value': 'Sinh học'
+}
+
 }
 
 # Cấu hình model
