@@ -13,7 +13,7 @@ import json
 import csv
 from datetime import datetime
 from classifier import WasteClassifier
-from camera import CameraClassifier
+
 from train import train_model, plot_training_history
 from data_manager import DataManager
 from incremental_train import IncrementalTrainer
