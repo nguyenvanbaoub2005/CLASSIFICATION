@@ -1,51 +1,41 @@
 # 🤖 Hệ Thống Phân Loại Rác Thải Bằng AI
 
-Hệ thống phân loại rác thải tự động sử dụng Deep Learning (CNN) để nhận diện 6 loại rác: **plastic, paper, glass, metal, cardboard, trash**.
+Hệ thống phân loại rác thải tự động sử dụng Deep Learning (CNN) để nhận diện các loại rác và hỗ trợ inference từ ảnh, webcam (real-time) và file video. Hệ thống hỗ trợ huấn luyện (train) với Data Augmentation và Transfer Learning.
 
-## 📋 Mục Lục
-
-- [Tính năng](#tính-năng)
-- [Yêu cầu hệ thống](#yêu-cầu-hệ-thống)
-- [Cài đặt](#cài-đặt)
-- [Cấu trúc dự án](#cấu-trúc-dự-án)
-- [Sử dụng](#sử-dụng)
-- [Huấn luyện model](#huấn-luyện-model)
-- [Dataset](#dataset)
+## 📌 Tóm tắt quan trọng (theo mã nguồn hiện tại)
+- Số lớp (classes): 7 — cardboard, glass, metal, organic, paper, plastic, trash (được định nghĩa trong config.py)
+- File model mặc định (PATHS trong config.py):
+  - waste_classifier_final.h5
+  - waste_classifier_best.h5
+  - temp_capture.jpg (ảnh tạm cho camera)
+  - training_history.png
+- Ngưỡng confidence: 70.0% (CONFIDENCE_THRESHOLD)
+- Transfer Learning: hỗ trợ MobileNetV2, VGG16, ResNet50 (create_transfer_learning_model)
+- Learning rate mặc định: 0.001 (MODEL_CONFIG)
+- Input image size mặc định: 224x224x3
 
 ## ✨ Tính năng
-
-- ✅ Phân loại 6 loại rác: plastic, paper, glass, metal, cardboard, trash
-- ✅ Phân loại từ ảnh đơn lẻ
-- ✅ Phân loại real-time từ camera
-- ✅ Phân loại từ video file
-- ✅ Phân loại batch nhiều ảnh
-- ✅ Hiển thị độ tin cậy và hướng dẫn xử lý
-- ✅ Hỗ trợ Transfer Learning
-- ✅ Data Augmentation tự động
+- Phân loại 7 loại rác: plastic, paper, glass, metal, cardboard, trash, organic.
+- Phân loại từ ảnh đơn lẻ.
+- Phân loại real-time từ webcam (gui điều khiển: SPACE, C, S, Q).
+- Phân loại từ file video (classify mỗi N frame).
+- Batch predict (predict nhiều ảnh).
+- Hiển thị độ tin cậy (confidence) và hướng dẫn xử lý theo cấu hình CLASS_INFO.
+- Hỗ trợ Transfer Learning và Data Augmentation tự động.
 
 ## 💻 Yêu cầu hệ thống
-
-### Phần cứng
-- **CPU**: Intel i5 hoặc tương đương
-- **RAM**: Tối thiểu 8GB (16GB khuyến nghị)
-- **GPU**: NVIDIA GPU với CUDA (không bắt buộc nhưng khuyến nghị cho training)
-- **Camera**: Webcam (cho chức năng real-time)
-
-### Phần mềm
 - Python 3.7 - 3.10
-- pip hoặc conda
+- CPU: Intel i5 hoặc tương đương (GPU NVIDIA + CUDA khuyến nghị cho training)
+- RAM: >=8GB (16GB khuyến nghị)
 
-## 🔧 Cài đặt
-
-### 1. Clone hoặc tải project
-
+## 📦 Cài đặt
+1. Clone repo:
 ```bash
-git clone <repository-url>
-cd waste-classifier
+git clone https://github.com/nguyenvanbaoub2005/CLASSIFICATION.git
+cd CLASSIFICATION
 ```
 
-### 2. Tạo virtual environment (khuyến nghị)
-
+2. Tạo virtual environment (khuyến nghị):
 ```bash
 # Windows
 python -m venv venv
@@ -56,215 +46,117 @@ python3 -m venv venv
 source venv/bin/activate
 ```
 
-### 3. Cài đặt thư viện
-
+3. Cài đặt phụ thuộc:
 ```bash
 pip install -r requirements.txt
 ```
 
-## 📁 Cấu trúc dự án
+## 📁 Cấu trúc dự án (quan trọng)
+Root repository chứa:
+- config.py            # cấu hình (CLASSES, CLASS_INFO, MODEL_CONFIG, PATHS,...)
+- model.py             # định nghĩa model CNN và hàm transfer learning
+- train.py             # script huấn luyện (dùng ImageDataGenerator)
+- classifier.py        # lớp WasteClassifier để load model và predict/display
+- camera.py            # xử lý camera, chế độ real-time và xử lý video
+- requirements.txt
+- dataset/             # (tự tạo) train/validation theo từng class
+- models/              # (tùy) nơi bạn lưu model
 
-```
-waste-classifier/
-├── config.py              # Cấu hình hệ thống
-├── model.py               # Kiến trúc CNN model
-├── train.py               # Huấn luyện model
-├── classifier.py          # Class phân loại
-├── camera.py              # Xử lý camera/video
-├── requirements.txt       # Thư viện cần thiết
-├── README.md              # File này
-│
-├── dataset/               # Thư mục dữ liệu (tự tạo)
-│   ├── train/
-│   │   ├── plastic/
-│   │   ├── paper/
-│   │   ├── glass/
-│   │   ├── metal/
-│   │   ├── cardboard/
-│   │   └── trash/
-│   └── validation/
-│       ├── plastic/
-│       ├── paper/
-│       ├── glass/
-│       ├── metal/
-│       ├── cardboard/
-│       └── trash/
-│
-└── models/                # Model đã train (tự động tạo)
-    ├── waste_classifier_final.h5
-    └── waste_classifier_best.h5
-```
-
-## 🚀 Sử dụng
-
-### 1. Phân loại từ ảnh
-
-```bash
-python classifier.py
-```
-
-Nhập đường dẫn ảnh khi được hỏi.
-
-### 2. Phân loại từ camera (Real-time)
-
-```bash
-python camera.py
-# Chọn option 1
-```
-
-Điều khiển:
-- **SPACE** - Chụp và phân loại
-- **C** - Bật/tắt chế độ liên tục
-- **S** - Lưu ảnh
-- **Q** - Thoát
-
-### 3. Phân loại từ video
-
-```bash
-python camera.py
-# Chọn option 2
-```
-
-## 🎓 Huấn luyện model
-
-### 1. Chuẩn bị dataset
-
-Tổ chức thư mục theo cấu trúc:
-
+## 🗂️ Dataset (cách tổ chức)
+Tổ chức thư mục dataset theo cấu trúc:
 ```
 dataset/
 ├── train/
-│   ├── plastic/     (500+ ảnh)
-│   ├── paper/       (500+ ảnh)
-│   ├── glass/       (500+ ảnh)
-│   ├── metal/       (500+ ảnh)
-│   ├── cardboard/   (500+ ảnh)
-│   └── trash/       (500+ ảnh)
+│   ├── cardboard/
+│   ├── glass/
+│   ├── metal/
+│   ├── organic/
+│   ├── paper/
+│   ├── plastic/
+│   └── trash/
 └── validation/
-    ├── plastic/     (100+ ảnh)
-    ├── paper/       (100+ ảnh)
-    ├── glass/       (100+ ảnh)
-    ├── metal/       (100+ ảnh)
-    ├── cardboard/   (100+ ảnh)
-    └── trash/       (100+ ảnh)
+    ├── cardboard/
+    ├── glass/
+    ├── metal/
+    ├── organic/
+    ├── paper/
+    ├── plastic/
+    └── trash/
 ```
+Gợi ý số lượng ảnh: train: 400–1000 ảnh/class, validation: 50–200 ảnh/class (tùy dataset).
 
-### 2. Chạy training
-
+## 🚀 Huấn luyện model
+Chạy:
 ```bash
 python train.py
 ```
-
-Nhập thông tin khi được hỏi:
-- Đường dẫn thư mục train
+Script sẽ hỏi:
+- Đường dẫn thư mục training
 - Đường dẫn thư mục validation
-- Sử dụng Transfer Learning (y/n)
-- Số epochs (mặc định: 50)
+- Sử dụng Transfer Learning? (y/n) — nếu chọn y, mặc định code sử dụng MobileNetV2 (có thể thay trong model.py)
+- Số epochs (mặc định MODEL_CONFIG['epochs'] = 50)
 
-### 3. Kết quả
+Chi tiết:
+- Data augmentation được cấu hình trong AUGMENTATION_CONFIG (config.py).
+- Callbacks: ModelCheckpoint (lưu best model theo val_accuracy), EarlyStopping, ReduceLROnPlateau, TensorBoard.
+- Sau training, model cuối cùng được lưu theo PATHS['model_save'] (waste_classifier_final.h5) và best model theo PATHS['best_model'].
 
-Sau khi training xong, bạn sẽ có:
-- `waste_classifier_final.h5` - Model cuối cùng
-- `waste_classifier_best.h5` - Model tốt nhất
-- `training_history.png` - Biểu đồ training
+## 🧪 Sử dụng (Inference)
 
-## 📊 Dataset
-
-### Nguồn dataset khuyến nghị:
-
-#### Kaggle
-1. **Waste Classification Data**
-   - ~25,000 ảnh, 6 classes
-   - https://www.kaggle.com/datasets/techsash/waste-classification-data
-
-2. **TrashNet Dataset**
-   - ~2,500 ảnh, 6 classes
-   - https://www.kaggle.com/datasets/fedesoriano/trashnet
-
-## 📝 Ví dụ sử dụng
-
-### Phân loại một ảnh
-
+- Phân loại ảnh đơn:
+```bash
+python classifier.py
+# Sau đó nhập đường dẫn ảnh khi được hỏi.
+```
+Hoặc dùng lớp trực tiếp:
 ```python
 from classifier import WasteClassifier
-
-# Khởi tạo
-classifier = WasteClassifier('waste_classifier_final.h5')
-
-# Phân loại
-result = classifier.predict('test_image.jpg')
-
-# Hiển thị kết quả
-classifier.display_result('test_image.jpg', result)
+clf = WasteClassifier('waste_classifier_final.h5')
+result = clf.predict('test.jpg')
+clf.display_result('test.jpg', result)
 ```
 
-### Camera real-time
-
-```python
-from camera import CameraClassifier
-
-cam = CameraClassifier('waste_classifier_final.h5')
-cam.start_camera()
-cam.run_interactive()
-```
-
-## 🔧 Cấu hình
-
-Chỉnh sửa trong `config.py`:
-
-```python
-# Số epochs
-MODEL_CONFIG['epochs'] = 100
-
-# Batch size
-MODEL_CONFIG['batch_size'] = 16
-
-# Learning rate
-MODEL_CONFIG['learning_rate'] = 0.0001
-```
-
-## 🐛 Troubleshooting
-
-### Lỗi ImportError
-
+- Camera real-time:
 ```bash
-pip install --upgrade tensorflow opencv-python pillow matplotlib
+python camera.py
+# Chọn option 1 (Camera real-time)
 ```
+Phím điều khiển:
+- SPACE: chụp & phân loại
+- C: toggle phân loại liên tục
+- S: lưu ảnh
+- Q / ESC: thoát
 
-### Lỗi Out of Memory
-
-Giảm batch_size trong `config.py`:
-```python
-MODEL_CONFIG['batch_size'] = 8  # hoặc 4
+- Xử lý video file:
+```bash
+python camera.py
+# Chọn option 2 và nhập đường dẫn video
 ```
+Hàm classify_video_file phân loại mỗi N frames (mặc định tham số interval).
 
-### Camera không hoạt động
+## ℹ️ Chi tiết kỹ thuật hữu ích (theo code)
+- Model custom: create_waste_classifier_model() — một CNN tuần tự với nhiều block Conv2D + MaxPool + BatchNorm + Dropout, cuối cùng softmax theo num_classes.
+- Transfer Learning: create_transfer_learning_model(base_model_name) — base_model (MobileNetV2 / VGG16 / ResNet50) với lớp top custom; base_model.trainable = False.
+- Preprocessing: classifier.preprocess_image() resize về MODEL_CONFIG['input_shape'][:2] (224x224) và rescale /255.
+- Loss: categorical_crossentropy, optimizer Adam (learning_rate từ MODEL_CONFIG).
+- Requirements (requirements.txt): tensorflow>=2.10.0, opencv-python, pillow, matplotlib, numpy.
 
-Thử camera ID khác:
-```python
-cam.start_camera(camera_id=1)  # hoặc 2, 3
-```
+## 📈 Kết quả kỳ vọng (ước lượng)
+Các con số này phụ thuộc dataset và training; README cũ có ước lượng, bạn có thể điều chỉnh sau khi thử nghiệm:
+- Training Accuracy: cao tùy dataset (ví dụ 90%+ trên dataset tốt)
+- Validation Accuracy: biến động theo dataset (mục tiêu tối ưu hóa bằng augmentation + transfer learning)
+- Inference time: phụ thuộc phần cứng (GPU/CPU)
 
-## 📈 Kết quả mong đợi
-
-| Metric | Value |
-|--------|-------|
-| Training Accuracy | 92-95% |
-| Validation Accuracy | 85-90% |
-| Inference Time | ~100ms/image |
-| Model Size | ~50MB |
-
-## 📞 Hỗ trợ
-
-Nếu gặp vấn đề:
-1. Kiểm tra requirements.txt
-2. Đảm bảo dataset đúng cấu trúc
-3. Xem log lỗi chi tiết
-
-## 📄 License
-
-MIT License - Free to use for educational and commercial purposes.
+## 🛠️ Lưu ý và khuyến nghị
+- README cũ đề cập 6 lớp; hiện repo có 7 lớp (thêm 'organic') — nếu bạn muốn chỉ 6 lớp, cần sửa CLASSES trong config.py và điều chỉnh dataset, retrain.
+- Nếu muốn fine-tune base model (transfer learning), bạn cần thay base_model.trainable = True cho một số layer và giảm learning rate.
+- Để giảm sử dụng bộ nhớ khi training, giảm batch_size trong MODEL_CONFIG.
+- Có thể export model sang ONNX/TF-Lite nếu cần deploy trên thiết bị di động/edge.
 
 ---
 
-**Happy Coding! 🚀**# CLASSIFICATION
+Nếu bạn đồng ý, tôi có thể:
+- Tạo PR để thay thế README.md bằng phiên bản này.
+- Hoặc cập nhật README ngay (tôi sẽ tạo PR nếu bạn cho phép).
+
+Bạn muốn tôi tạo PR cập nhật README không?
